@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assistente IA · Pessoal</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#06080f; --bg1:#0b0e18; --bg2:#10141f; --bg3:#161c2e;
+  --border:#1c2540; --border2:#243050;
+  --green:#00e5a0; --green2:#00b87d; --red:#ff4d6d; --red2:#c9374f;
+  --blue:#3d8bff; --blue2:#2563c7; --yellow:#f5c542; --purple:#a78bfa;
+  --cyan:#22d3ee; --orange:#fb923c;
+  --text:#dce6f5; --text2:#5d718c; --text3:#2c3a52;
+  --font-mono:'IBM Plex Mono',monospace;
+  --font-sans:'Sora',sans-serif;
+  --r:10px; --r2:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);overflow:hidden;display:flex;flex-direction:column}
+
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(61,139,255,.04) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(61,139,255,.04) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0}
+
+/* ── HEADER ── */
+header{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-bottom:1px solid var(--border);background:var(--bg1);flex-shrink:0}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:13px;
+  color:var(--purple);letter-spacing:2px;font-weight:600}
+.pulse{width:9px;height:9px;background:var(--purple);border-radius:50%;
+  animation:pulse 2.2s ease-in-out infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(167,139,250,.5)}50%{box-shadow:0 0 0 7px rgba(167,139,250,0)}}
+
+.header-actions{display:flex;align-items:center;gap:8px}
+.btn-icon{background:none;border:1px solid var(--border);border-radius:var(--r);padding:7px 10px;
+  color:var(--text2);cursor:pointer;font-family:var(--font-mono);font-size:11px;
+  transition:all .2s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-icon:hover{color:var(--text);border-color:var(--border2);background:var(--bg2)}
+.btn-icon.danger:hover{color:var(--red);border-color:var(--red)}
+.back-link{text-decoration:none}
+
+/* ── MAIN LAYOUT ── */
+.layout{position:relative;z-index:1;display:flex;flex:1;overflow:hidden;min-height:0}
+
+/* ── SIDEBAR ── */
+.sidebar{width:240px;flex-shrink:0;border-right:1px solid var(--border);background:var(--bg1);
+  display:flex;flex-direction:column;overflow:hidden}
+.sidebar-header{padding:14px 16px;border-bottom:1px solid var(--border)}
+.sidebar-title{font-family:var(--font-mono);font-size:9px;letter-spacing:3px;color:var(--text2);
+  text-transform:uppercase;margin-bottom:10px}
+.btn-new{width:100%;padding:9px 14px;background:linear-gradient(135deg,var(--purple),#7c3aed);
+  border:none;border-radius:var(--r);color:#fff;font-family:var(--font-sans);font-size:12px;
+  font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.3px}
+.btn-new:hover{opacity:.88;transform:translateY(-1px)}
+
+.session-list{flex:1;overflow-y:auto;padding:8px;scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent}
+.session-list::-webkit-scrollbar{width:4px}
+.session-list::-webkit-scrollbar-track{background:transparent}
+.session-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.session-item{padding:10px 12px;border-radius:var(--r);cursor:pointer;margin-bottom:3px;
+  transition:all .18s;border:1px solid transparent}
+.session-item:hover{background:var(--bg2);border-color:var(--border)}
+.session-item.active{background:var(--bg3);border-color:var(--purple);border-left:2px solid var(--purple)}
+.session-name{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.session-date{font-family:var(--font-mono);font-size:9px;color:var(--text2)}
+
+/* ── CHAT AREA ── */
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* ── MESSAGES ── */
+.messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.messages::-webkit-scrollbar{width:6px}
+.messages::-webkit-scrollbar-track{background:transparent}
+.messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── WELCOME ── */
+.welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex:1;text-align:center;padding:40px 20px;opacity:.9}
+.welcome-icon{font-size:52px;margin-bottom:16px;filter:drop-shadow(0 0 20px rgba(167,139,250,.4))}
+.welcome-title{font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--purple);
+  margin-bottom:8px;letter-spacing:1px}
+.welcome-sub{font-size:13px;color:var(--text2);line-height:1.6;max-width:380px}
+.suggestions{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px;justify-content:center}
+.sug-chip{padding:8px 14px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:20px;font-size:11px;color:var(--text2);cursor:pointer;
+  transition:all .2s;font-family:var(--font-mono)}
+.sug-chip:hover{border-color:var(--purple);color:var(--purple);background:rgba(167,139,250,.08)}
+
+/* ── MESSAGE BUBBLES ── */
+.msg{display:flex;gap:12px;max-width:780px;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse;align-self:flex-end}
+.msg.assistant{align-self:flex-start}
+
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;border:1px solid var(--border)}
+.msg.user .avatar{background:linear-gradient(135deg,var(--blue),var(--purple));border-color:var(--purple)}
+.msg.assistant .avatar{background:linear-gradient(135deg,#1a1040,#2a1060);border-color:var(--purple);
+  box-shadow:0 0 12px rgba(167,139,250,.2)}
+
+.bubble{padding:12px 16px;border-radius:14px;max-width:100%;line-height:1.65;font-size:13.5px}
+.msg.user .bubble{background:linear-gradient(135deg,rgba(61,139,255,.15),rgba(167,139,250,.15));
+  border:1px solid rgba(167,139,250,.3);border-top-right-radius:4px;color:var(--text)}
+.msg.assistant .bubble{background:var(--bg2);border:1px solid var(--border);
+  border-top-left-radius:4px;color:var(--text)}
+
+.bubble p{margin-bottom:8px}
+.bubble p:last-child{margin-bottom:0}
+.bubble code{font-family:var(--font-mono);font-size:12px;background:rgba(61,139,255,.1);
+  border:1px solid rgba(61,139,255,.2);padding:1px 5px;border-radius:4px;color:var(--cyan)}
+.bubble pre{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+  padding:12px;overflow-x:auto;margin:8px 0;font-family:var(--font-mono);font-size:11.5px;
+  line-height:1.5;color:var(--cyan)}
+.bubble pre code{background:none;border:none;padding:0;color:inherit}
+.bubble strong{color:var(--text);font-weight:600}
+.bubble em{color:var(--text2)}
+.bubble ul,.bubble ol{padding-left:20px;margin:6px 0}
+.bubble li{margin-bottom:4px}
+.bubble h1,.bubble h2,.bubble h3{color:var(--purple);font-family:var(--font-mono);
+  margin:10px 0 6px;font-size:14px;letter-spacing:.5px}
+.bubble blockquote{border-left:3px solid var(--purple);padding-left:12px;
+  color:var(--text2);margin:8px 0;font-style:italic}
+
+/* typing indicator */
+.typing-dots{display:flex;gap:5px;align-items:center;padding:4px 0}
+.typing-dots span{width:7px;height:7px;background:var(--purple);border-radius:50%;
+  animation:blink 1.2s ease-in-out infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+/* ── INPUT AREA ── */
+.input-area{flex-shrink:0;padding:16px 20px;border-top:1px solid var(--border);background:var(--bg1)}
+.input-wrap{display:flex;gap:10px;align-items:flex-end;background:var(--bg2);
+  border:1px solid var(--border);border-radius:14px;padding:10px 14px;
+  transition:border-color .2s}
+.input-wrap:focus-within{border-color:var(--purple);box-shadow:0 0 0 3px rgba(167,139,250,.1)}
+textarea#userInput{flex:1;background:none;border:none;outline:none;color:var(--text);
+  font-family:var(--font-sans);font-size:13.5px;resize:none;line-height:1.55;
+  max-height:160px;min-height:22px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+textarea#userInput::placeholder{color:var(--text3)}
+.send-btn{flex-shrink:0;width:36px;height:36px;border:none;border-radius:50%;
+  background:linear-gradient(135deg,var(--purple),#7c3aed);color:#fff;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;font-size:16px}
+.send-btn:hover{transform:scale(1.08);box-shadow:0 0 14px rgba(167,139,250,.5)}
+.send-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
+
+.input-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;
+  font-family:var(--font-mono);font-size:9px;color:var(--text3)}
+.model-badge{padding:3px 8px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);
+  border-radius:20px;color:var(--purple)}
+
+/* ── KEY MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);
+  z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);
+  padding:28px;width:100%;max-width:440px;position:relative}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--purple),transparent)}
+.modal-title{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--purple);
+  margin-bottom:6px;letter-spacing:1px}
+.modal-desc{font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.6}
+.form-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--text2);
+  text-transform:uppercase;margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);
+  padding:11px 14px;color:var(--text);font-family:var(--font-mono);font-size:12px;outline:none;
+  transition:border-color .2s}
+.form-input:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(167,139,250,.12)}
+.form-hint{font-size:11px;color:var(--text3);margin-top:6px;font-family:var(--font-mono)}
+.form-hint a{color:var(--blue);text-decoration:none}
+.form-hint a:hover{color:var(--purple)}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.btn-primary{flex:1;padding:11px;background:linear-gradient(135deg,var(--purple),#7c3aed);
+  border:none;border-radius:var(--r);color:#fff;font-family:var(--font-sans);font-size:13px;
+  font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px)}
+.btn-secondary{padding:11px 16px;background:none;border:1px solid var(--border);border-radius:var(--r);
+  color:var(--text2);font-family:var(--font-sans);font-size:13px;cursor:pointer;transition:all .2s}
+.btn-secondary:hover{border-color:var(--border2);color:var(--text)}
+.modal.hidden{display:none}
+
+/* ── SYSTEM PROMPT PANEL ── */
+.sys-panel{position:fixed;inset:0;z-index:90;display:none}
+.sys-panel.open{display:flex}
+.sys-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.5)}
+.sys-drawer{position:absolute;right:0;top:0;bottom:0;width:360px;background:var(--bg1);
+  border-left:1px solid var(--border);padding:24px;display:flex;flex-direction:column;
+  overflow-y:auto}
+.sys-drawer h2{font-family:var(--font-mono);font-size:12px;color:var(--purple);letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:6px}
+.sys-drawer p{font-size:11px;color:var(--text2);margin-bottom:16px;line-height:1.6}
+.sys-textarea{width:100%;flex:1;min-height:200px;background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--r);padding:12px;color:var(--text);font-family:var(--font-mono);font-size:11.5px;
+  resize:none;outline:none;line-height:1.6;transition:border-color .2s}
+.sys-textarea:focus{border-color:var(--purple)}
+.sys-save{margin-top:12px;width:100%;padding:10px;background:linear-gradient(135deg,var(--purple),#7c3aed);
+  border:none;border-radius:var(--r);color:#fff;font-family:var(--font-sans);font-size:13px;
+  font-weight:600;cursor:pointer;transition:opacity .2s}
+.sys-save:hover{opacity:.88}
+
+/* ── RESPONSIVE ── */
+@media(max-width:640px){
+  .sidebar{display:none}
+  .input-footer .model-badge{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- KEY MODAL -->
+<div class="modal-overlay" id="keyModal">
+  <div class="modal">
+    <div class="modal-title">// CONFIGURE API</div>
+    <div class="modal-desc">Insira sua chave da API Anthropic para usar o assistente pessoal.</div>
+    <label class="form-label">Chave API Anthropic</label>
+    <input class="form-input" type="password" id="apiKeyInput" placeholder="sk-ant-..." autocomplete="off">
+    <div class="form-hint">Obtenha sua chave em <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Ela fica salva só no seu navegador.</div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveKey()">Salvar e continuar</button>
+      <button class="btn-secondary" id="skipKeyBtn" onclick="closeKeyModal()" style="display:none">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- SYSTEM PROMPT PANEL -->
+<div class="sys-panel" id="sysPanel">
+  <div class="sys-backdrop" onclick="closeSysPanel()"></div>
+  <div class="sys-drawer">
+    <h2>Prompt do Sistema</h2>
+    <p>Define a personalidade e comportamento do assistente.</p>
+    <textarea class="sys-textarea" id="sysPromptInput"></textarea>
+    <button class="sys-save" onclick="saveSysPrompt()">Salvar prompt</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div style="display:flex;align-items:center;gap:14px">
+    <a href="../" class="btn-icon back-link" title="Voltar para Finance">← Finance</a>
+    <div class="logo">
+      <div class="pulse"></div>
+      ASSISTENTE IA
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-icon" onclick="openSysPanel()" title="Prompt do sistema">⚙ Sistema</button>
+    <button class="btn-icon" onclick="openKeyModal()" title="Configurar API key">🔑 API</button>
+    <button class="btn-icon danger" onclick="clearCurrentChat()" title="Limpar conversa">✕ Limpar</button>
+  </div>
+</header>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Conversas</div>
+      <button class="btn-new" onclick="newChat()">+ Nova conversa</button>
+    </div>
+    <div class="session-list" id="sessionList"></div>
+  </aside>
+
+  <!-- CHAT -->
+  <div class="chat-area">
+    <div class="messages" id="messages">
+      <!-- welcome shown when empty -->
+    </div>
+
+    <div class="input-area">
+      <div class="input-wrap">
+        <textarea id="userInput" rows="1" placeholder="Diga o que quiser… pressione Enter para enviar"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Enviar">▲</button>
+      </div>
+      <div class="input-footer">
+        <span>Enter: enviar · Shift+Enter: nova linha</span>
+        <span class="model-badge" id="modelBadge">claude-opus-5</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── STATE ──
+let apiKey = localStorage.getItem('anthropic_api_key') || '';
+let systemPrompt = localStorage.getItem('system_prompt') || 'Você é um assistente pessoal inteligente, útil e amigável. Responda sempre em português (Brasil), de forma clara, direta e conversacional. Seja proativo em oferecer sugestões e informações úteis. Quando relevante, estruture suas respostas com listas ou seções para facilitar a leitura.';
+
+let sessions = JSON.parse(localStorage.getItem('chat_sessions') || '[]');
+let activeSessionId = null;
+let isStreaming = false;
+
+// ── INIT ──
+function init() {
+  document.getElementById('sysPromptInput').value = systemPrompt;
+  if (!apiKey) {
+    showKeyModal(false);
+  } else {
+    document.getElementById('skipKeyBtn').style.display = 'block';
+    closeKeyModal();
+  }
+  renderSessionList();
+  if (sessions.length > 0) {
+    loadSession(sessions[0].id);
+  } else {
+    showWelcome();
+  }
+  setupTextarea();
+}
+
+// ── KEY MODAL ──
+function showKeyModal(showSkip) {
+  document.getElementById('keyModal').style.display = 'flex';
+  document.getElementById('apiKeyInput').value = apiKey;
+  document.getElementById('skipKeyBtn').style.display = showSkip ? 'block' : 'none';
+  setTimeout(() => document.getElementById('apiKeyInput').focus(), 50);
+}
+function openKeyModal() { showKeyModal(true); }
+function closeKeyModal() { document.getElementById('keyModal').style.display = 'none'; }
+function saveKey() {
+  const v = document.getElementById('apiKeyInput').value.trim();
+  if (!v) { alert('Por favor, insira sua chave API.'); return; }
+  apiKey = v;
+  localStorage.setItem('anthropic_api_key', v);
+  document.getElementById('skipKeyBtn').style.display = 'block';
+  closeKeyModal();
+}
+document.getElementById('apiKeyInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveKey();
+});
+
+// ── SYS PANEL ──
+function openSysPanel() { document.getElementById('sysPanel').classList.add('open'); }
+function closeSysPanel() { document.getElementById('sysPanel').classList.remove('open'); }
+function saveSysPrompt() {
+  systemPrompt = document.getElementById('sysPromptInput').value.trim() ||
+    'Você é um assistente pessoal inteligente e útil.';
+  localStorage.setItem('system_prompt', systemPrompt);
+  closeSysPanel();
+}
+
+// ── SESSIONS ──
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function newChat() {
+  const id = genId();
+  const session = {
+    id,
+    name: 'Nova conversa',
+    date: new Date().toLocaleDateString('pt-BR'),
+    messages: []
+  };
+  sessions.unshift(session);
+  saveSessions();
+  loadSession(id);
+}
+
+function loadSession(id) {
+  activeSessionId = id;
+  renderSessionList();
+  const session = sessions.find(s => s.id === id);
+  if (!session) return;
+  const container = document.getElementById('messages');
+  container.innerHTML = '';
+  if (session.messages.length === 0) {
+    showWelcome();
+  } else {
+    session.messages.forEach(m => appendBubble(m.role, m.content, false));
+    scrollToBottom();
+  }
+}
+
+function getActiveSession() {
+  return sessions.find(s => s.id === activeSessionId);
+}
+
+function saveSessions() {
+  // keep only last 40 sessions, max 60 messages each
+  const trimmed = sessions.slice(0, 40).map(s => ({
+    ...s,
+    messages: s.messages.slice(-60)
+  }));
+  try { localStorage.setItem('chat_sessions', JSON.stringify(trimmed)); } catch(e) {}
+}
+
+function renderSessionList() {
+  const list = document.getElementById('sessionList');
+  list.innerHTML = '';
+  if (sessions.length === 0) {
+    list.innerHTML = '<div style="padding:12px;font-size:11px;color:var(--text3);text-align:center;font-family:var(--font-mono)">Nenhuma conversa</div>';
+    return;
+  }
+  sessions.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'session-item' + (s.id === activeSessionId ? ' active' : '');
+    el.innerHTML = `<div class="session-name">${escHtml(s.name)}</div><div class="session-date">${s.date}</div>`;
+    el.onclick = () => loadSession(s.id);
+    list.appendChild(el);
+  });
+}
+
+function updateSessionName(text) {
+  const s = getActiveSession();
+  if (!s) return;
+  if (s.name === 'Nova conversa' || s.name === 'New Chat') {
+    s.name = text.slice(0, 36) + (text.length > 36 ? '…' : '');
+    saveSessions();
+    renderSessionList();
+  }
+}
+
+function clearCurrentChat() {
+  if (!activeSessionId) return;
+  const s = getActiveSession();
+  if (!s) return;
+  if (!confirm('Limpar esta conversa?')) return;
+  s.messages = [];
+  s.name = 'Nova conversa';
+  saveSessions();
+  const container = document.getElementById('messages');
+  container.innerHTML = '';
+  showWelcome();
+  renderSessionList();
+}
+
+// ── WELCOME ──
+function showWelcome() {
+  const container = document.getElementById('messages');
+  container.innerHTML = `
+    <div class="welcome">
+      <div class="welcome-icon">🤖</div>
+      <div class="welcome-title">// ASSISTENTE PESSOAL</div>
+      <div class="welcome-sub">Olá! Sou seu assistente de IA pessoal.<br>Como posso ajudar você hoje?</div>
+      <div class="suggestions">
+        <div class="sug-chip" onclick="fillSuggestion('Crie um plano de estudos para aprender programação em 3 meses')">📚 Plano de estudos</div>
+        <div class="sug-chip" onclick="fillSuggestion('Me ajude a escrever um e-mail profissional')">✉ Escrever e-mail</div>
+        <div class="sug-chip" onclick="fillSuggestion('Explique como funciona inteligência artificial de forma simples')">🧠 Explicar IA</div>
+        <div class="sug-chip" onclick="fillSuggestion('Me dê dicas para ser mais produtivo no trabalho')">⚡ Produtividade</div>
+        <div class="sug-chip" onclick="fillSuggestion('Crie um roteiro de viagem para 7 dias no Brasil')">✈ Roteiro de viagem</div>
+        <div class="sug-chip" onclick="fillSuggestion('Revise e melhore o seguinte texto:')">✍ Revisar texto</div>
+      </div>
+    </div>`;
+}
+
+function fillSuggestion(text) {
+  const input = document.getElementById('userInput');
+  input.value = text;
+  input.focus();
+  adjustTextarea(input);
+  // auto send for simple suggestions
+  if (!text.endsWith(':')) sendMessage();
+}
+
+// ── SEND MESSAGE ──
+async function sendMessage() {
+  if (isStreaming) return;
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!apiKey) { openKeyModal(); return; }
+
+  // ensure we have an active session
+  if (!activeSessionId) newChat();
+  const session = getActiveSession();
+  if (!session) return;
+
+  // clear welcome if present
+  const container = document.getElementById('messages');
+  if (container.querySelector('.welcome')) container.innerHTML = '';
+
+  input.value = '';
+  adjustTextarea(input);
+  updateSessionName(text);
+
+  // add user message
+  session.messages.push({ role: 'user', content: text });
+  saveSessions();
+  appendBubble('user', text, true);
+  scrollToBottom();
+
+  // show typing
+  const typingId = showTyping();
+  setStreaming(true);
+
+  try {
+    const body = {
+      model: 'claude-opus-5',
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: session.messages.map(m => ({ role: m.role, content: m.content }))
+    };
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify(body)
+    });
+
+    removeTyping(typingId);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: { message: res.statusText } }));
+      const msg = err?.error?.message || `HTTP ${res.status}`;
+      if (res.status === 401) {
+        appendError('Chave API inválida. Clique em "API" para configurar.');
+      } else {
+        appendError(`Erro da API: ${msg}`);
+      }
+      setStreaming(false);
+      return;
+    }
+
+    const data = await res.json();
+    const reply = data?.content?.[0]?.text || '';
+
+    session.messages.push({ role: 'assistant', content: reply });
+    saveSessions();
+    appendBubble('assistant', reply, true);
+    scrollToBottom();
+
+  } catch (e) {
+    removeTyping(typingId);
+    if (e.name === 'TypeError' && e.message.includes('fetch')) {
+      appendError('Erro de rede. Verifique sua conexão e a chave API.');
+    } else {
+      appendError(`Erro: ${e.message}`);
+    }
+  }
+
+  setStreaming(false);
+}
+
+// ── UI HELPERS ──
+function setStreaming(v) {
+  isStreaming = v;
+  document.getElementById('sendBtn').disabled = v;
+  document.getElementById('userInput').disabled = v;
+}
+
+function appendBubble(role, content, animate) {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  if (!animate) div.style.animation = 'none';
+
+  const avatar = role === 'user' ? '👤' : '🤖';
+  div.innerHTML = `
+    <div class="avatar">${avatar}</div>
+    <div class="bubble">${formatContent(content)}</div>`;
+  container.appendChild(div);
+}
+
+function appendError(text) {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.style.cssText = 'text-align:center;padding:10px;font-family:var(--font-mono);font-size:11px;color:var(--red);background:rgba(255,77,109,.08);border:1px solid rgba(255,77,109,.2);border-radius:var(--r);animation:fadeUp .25s ease';
+  div.textContent = '⚠ ' + text;
+  container.appendChild(div);
+  scrollToBottom();
+}
+
+function showTyping() {
+  const id = 'typing_' + genId();
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg assistant';
+  div.id = id;
+  div.innerHTML = `<div class="avatar">🤖</div><div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  container.appendChild(div);
+  scrollToBottom();
+  return id;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function scrollToBottom() {
+  const c = document.getElementById('messages');
+  requestAnimationFrame(() => { c.scrollTop = c.scrollHeight; });
+}
+
+// ── MARKDOWN-LITE FORMATTER ──
+function formatContent(text) {
+  // escape HTML first
+  let s = escHtml(text);
+  // code blocks
+  s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, (_,_lang,code) =>
+    `<pre><code>${code.trim()}</code></pre>`);
+  // inline code
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // bold
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // italic
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  // headers
+  s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  s = s.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  s = s.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  // blockquote
+  s = s.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+  // unordered list
+  s = s.replace(/^[*\-] (.+)$/gm, '<li>$1</li>');
+  s = s.replace(/(<li>[\s\S]+?<\/li>)/g, m => `<ul>${m}</ul>`);
+  // ordered list
+  s = s.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+  // horizontal rule
+  s = s.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid var(--border);margin:10px 0">');
+  // paragraphs (double newline)
+  s = s.split(/\n\n+/).map(block => {
+    if (block.startsWith('<')) return block;
+    return '<p>' + block.replace(/\n/g, '<br>') + '</p>';
+  }).join('');
+  return s;
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── TEXTAREA AUTO-RESIZE ──
+function setupTextarea() {
+  const el = document.getElementById('userInput');
+  el.addEventListener('input', () => adjustTextarea(el));
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+}
+
+function adjustTextarea(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+}
+
+// ── BOOT ──
+init();
+</script>
+</body>
+</html>
